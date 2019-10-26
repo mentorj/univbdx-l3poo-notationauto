@@ -1,12 +1,13 @@
 package com.javaxpert.tests.qdox;
 
 import static org.junit.Assert.*;
+
+import com.thoughtworks.qdox.JavaProjectBuilder;
+import com.thoughtworks.qdox.model.JavaClass;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.io.File;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -15,6 +16,8 @@ import java.util.stream.Collectors;
  * @author J.MOLIERE - October 2019
  */
 public class Grade {
+    private final static String[] EXAM_CLASSES_CHECKED=
+            {"Course","Program","Lecture","Activity","Lab","MaxSizeExceededException"};
 
     @Test
     @Mark(5)
@@ -46,5 +49,28 @@ public class Grade {
     public void isExceptionCodeCorrect(){
         System.out.println("isExceptionCodecorrect is over...");
         assertEquals(true,true);
+    }
+
+    @Test
+    @Mark(5)
+    /**
+     * check imports & packages
+     */
+    public void isImportsOk(){
+        // read all classes from this project
+        Set<String> expected_classes = new TreeSet();
+        JavaProjectBuilder builder = new JavaProjectBuilder();
+        builder.addSourceTree(new File("."));
+
+        // keep the only classes listed as checked by this program
+        Collection<JavaClass> all_classes = builder.getClasses();
+        Set<JavaClass> filtered_classes =  all_classes.stream().filter(
+                clazz -> Arrays.asList(EXAM_CLASSES_CHECKED).contains(clazz.getName())
+        ).collect(Collectors.toSet());
+
+
+
+        // watch imports for these classes
+        //JavaClass exception = filtered_classes.("MaxSizeExceededException")
     }
 }
