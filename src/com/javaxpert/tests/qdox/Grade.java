@@ -2,16 +2,14 @@ package com.javaxpert.tests.qdox;
 
 import static org.junit.Assert.*;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import com.thoughtworks.qdox.JavaProjectBuilder;
 import com.thoughtworks.qdox.model.JavaClass;
+import com.thoughtworks.qdox.model.JavaMethod;
 import org.junit.Test;
 
 import javax.tools.*;
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -23,6 +21,49 @@ import java.util.stream.Stream;
 public class Grade {
     private final static String[] EXAM_CLASSES_CHECKED=
             {"Course","Program","Lecture","Activity","Lab","MaxSizeExceededException"};
+    private  String sourcePath;
+
+    public Grade(String sourcepath){
+        sourcePath=sourcepath;
+        System.out.println("Setting up grade object with source path =" + sourcePath);
+    }
+
+
+    /**
+     * search a class by name
+     * @param name
+     * @return  model for this Java class
+     */
+    private static JavaClass fetchClassByName(String name,JavaProjectBuilder builder){
+        System.err.println("--------------------------------------");
+        System.err.println("Debug for list of classes");
+        System.err.println("--------------------------------------");
+
+        builder.getClasses().stream().forEach(System.err::println);
+        System.err.println("Class : " + name + " contained ? = "+ builder.getClasses().contains(name.trim()));
+        System.err.flush();
+        return builder.getClasses().stream()
+                .filter(javaClass -> {
+                    System.err.println("Current class is = " + javaClass.toString() + " Canonical  name = " + javaClass.getCanonicalName() + " Simple name : "+ javaClass.getName());
+                    System.err.flush();
+                    return javaClass.getCanonicalName().contains(name.trim());
+                })
+                .collect(Collectors.toList()).get(0);
+    }
+
+    /**
+     *
+     * @param name
+     * @return
+     */
+    private static List<JavaMethod> fetchMethodByName(String name, JavaClass clazz){
+        System.err.println("fetchMethodByName : " + name + " for class = " + clazz);
+        System.err.flush();;
+        return clazz.getMethods().stream()
+                .filter(javaMethod -> javaMethod.getName().contains(name) )
+                .collect(Collectors.toList());
+    }
+
 
     @Test
     @Mark(5)
@@ -31,7 +72,7 @@ public class Grade {
         // are available in classpath
 
         // include University in this list ?
-        String[] mandatory_classes={"com.foo.foobar.Foo1","com.foo.foobar.MyException"};//{"Course","Activity","Program","Lecture"};
+        String[] mandatory_classes={"course.Course","activity.Activity","course.Program","activity.Lecture"};
         List<String> mandatory_classes_list = Arrays.asList(mandatory_classes);
         Set<Optional<Class>> classes_in_classpath = mandatory_classes_list.stream()
                 .map( classname -> Utils.loadClazz(classname))
@@ -44,6 +85,8 @@ public class Grade {
     @Test
     @Mark(5)
     public  void isCompilationOk(){
+        JavaProjectBuilder builder = new JavaProjectBuilder();
+        builder.addSourceTree(new File(sourcePath));
         // setup a Java compiler environent
         // 1- get a compiler
         // 2 - setup files to be compiled
@@ -53,12 +96,9 @@ public class Grade {
         DiagnosticCollector<JavaFileObject> diagnostics =
                 new DiagnosticCollector<>();
 
-        JavaProjectBuilder builder = new JavaProjectBuilder();
-        builder.addSourceTree(new File(
-                "."
-        ));
 
-        builder.getSources().stream().forEach(System.out::println);
+
+        //builder.getSources().stream().forEach(System.out::println);
         // get all classes fetched by QDOX
         // then filter them (drops all classes for non test code)
         Collection<JavaClass> all_classes = builder.getClasses();
@@ -70,7 +110,6 @@ public class Grade {
         ).collect(Collectors.toSet());
 
 
-        // @TODO : does not work on windows
         Set<File> java_files = filtered_classes.stream()
                 .map( java -> new File(java.getSource().getURL().getPath()))
                 .collect(Collectors.toSet());
@@ -89,19 +128,83 @@ public class Grade {
     }
 
     @Test
-    @Mark(10)
-    public void isExecutionOk(){
+    @Mark(5)
+    public void isGetTotalCostOk(){
+        // setup minimal objects to check methods results
+        // uses main program setup to launch the getTotalCost
+//        Activity lect1 = new Lecture(16);
+//        Activity lect2 = new Lecture(24);
+//        Activity lab1 = new Lab(32, 20);
+//        Activity lab2 = new Lab(16, 25);
+//
+//        Course[] courses = new Course[4];
+//        courses[0] = new Course("Java programming", lect2, lab1);
+//        courses[1] = new Course("Algorithms", lect1);
+//        courses[2] = new Course("Open source software", lab1);
+//        courses[3] = new Course("Web programming", lect2, lab2);
+//
+//        Program[] programs = new Program[3];
+//        programs[0] = new Program("Program 1", 200, 180);
+//        programs[1] = new Program("Program 2", 300, 75);
+//        programs[2] = new Program("Program 3", 80, 30);
+//
+//        for (Course c : courses) {
+//            System.out.println(c);
+//        }
+//        System.out.println();
+//
+//        for (Program p : programs) {
+//            System.out.println("Making program for " + p.getTitle() + " (" + p.getMaxCost() + " hours for "
+//                    + p.getNbStudents() + " students)");
+//            for (Course c : courses) {
+//                boolean added = false;
+//                try {
+//                    added = p.addCourse(c);
+//                } catch (MaxSizeExceededException e) {
+//                    System.out.println("Course " + c.getTitle() + " not added - maximum number of courses per program = " + e.getSize());
+//                    break;
+//                }
+//                if (added)
+//                    System.out.println("Course '" + c.getTitle() + "' added");
+//                else {
+//                    System.out.println("Not enough hours left for adding '" + c.getTitle() + "'");
+//                }
+//            }
+//
+//            System.out.println();
+//        }
+//
+//        for (Program p : programs) {
+//            int totalCost = p.getTotalCost();
+//            System.out.println(p.getTitle() + " : cost/student " + totalCost / (double) p.getNbStudents()
+//                    + " hours, margin = " + (p.getMaxCost() - totalCost));
+//        }
 
-        System.out.println("isExecutionOk() is over...");
+
+        System.out.println("isGetTotal is over...");
         assertEquals(true,false);
         //Assert.assertEquals(expectedResult,);
     }
 
     @Test
-    @Mark(5)
-    public void isExceptionCodeCorrect(){
-        System.out.println("isExceptionCodecorrect is over...");
-        assertEquals(true,true);
+    @Mark(2)
+    public void isExceptionDeclared(){
+        JavaProjectBuilder builder = new JavaProjectBuilder();
+        builder.addSourceTree(new File(sourcePath));
+
+        JavaClass clazz = fetchClassByName("course.Program",builder);
+        JavaMethod method = fetchMethodByName("addCourse", clazz).get(0);
+        System.err.println("Listing exceptions fetched for class = "+ clazz.getName());
+        method.getExceptions().stream().forEach(System.err::println);
+
+        System.err.flush();
+        boolean test_ok = (method.getExceptions().stream()
+                .map( javaClass ->  javaClass.getName())
+                .filter(name -> "course.MaxSizeExceededException".contains(name))
+                .count()==1);
+        System.err.println("isExceptionDeclared is over...");
+        System.err.flush();;
+        assertEquals(true,test_ok);
     }
 
     @Test
