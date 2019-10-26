@@ -208,6 +208,16 @@ public class Grade {
     }
 
     @Test
+    @Mark(2)
+    public void isExceptionClassCreated(){
+        JavaProjectBuilder builder = new JavaProjectBuilder();
+        builder.addSourceTree(new File(sourcePath));
+
+        JavaClass clazz = fetchClassByName("course.MaxSizeExceededException",builder);
+        assertTrue("MaxSizeExceededException should inherit from Exception ",clazz.getSuperClass().getCanonicalName().equals("java.lang.Exception"));
+    }
+
+    @Test
     @Mark(5)
     /**
      * check imports & packages
@@ -229,4 +239,31 @@ public class Grade {
         // watch imports for these classes
         //JavaClass exception = filtered_classes.("MaxSizeExceededException")
     }
+
+    @Test
+    @Mark(2)
+    /**
+     * check if the activity class is declared as abstract
+     */
+    public void isActivityAbstract(){
+        JavaProjectBuilder builder = new JavaProjectBuilder();
+        builder.addSourceTree(new File("."));
+        JavaClass activity = fetchClassByName("activity.Activity",builder);
+        assertTrue("Activity should be declared as abstract",activity.isAbstract());
+    }
+
+    @Test
+    @Mark(2)
+    /**
+     * check if the activity class is declared as abstract
+     */
+    public void isActivityAbstractMethodsOk(){
+        JavaProjectBuilder builder = new JavaProjectBuilder();
+        builder.addSourceTree(new File("."));
+        JavaClass activity = fetchClassByName("activity.Activity",builder);
+        JavaMethod getType = fetchMethodByName("getType",activity).get(0);
+        JavaMethod  getCost = fetchMethodByName("getCost",activity).get(0);
+        assertTrue("Activity should have 2 abstract methods",getCost.isAbstract() && getType.isAbstract());
+    }
+
 }
