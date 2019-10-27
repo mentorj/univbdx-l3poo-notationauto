@@ -23,6 +23,11 @@ public class Course {
         Activities[0] = a;
     }
 
+    // added for testing Grade
+    public Course(String title,int a,int b){
+
+    }
+
     public String toString() {
         String msg = title + " : ";
         for (Activity a : Activities) {

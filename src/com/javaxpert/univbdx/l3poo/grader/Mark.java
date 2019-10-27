@@ -1,4 +1,4 @@
-package com.javaxpert.tests.qdox;
+package com.javaxpert.univbdx.l3poo.grader;
 import java.lang.annotation.*;
 
 @Retention(RetentionPolicy.RUNTIME)

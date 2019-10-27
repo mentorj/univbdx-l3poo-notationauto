@@ -1,14 +1,18 @@
-package com.javaxpert.tests.qdox;
+package com.javaxpert.univbdx.l3poo.grader;
 
 import static org.junit.Assert.*;
 
+import activity.Activity;
 import com.thoughtworks.qdox.JavaProjectBuilder;
 import com.thoughtworks.qdox.model.JavaClass;
 import com.thoughtworks.qdox.model.JavaMethod;
+import course.Course;
+import course.Program;
 import org.junit.Test;
 
 import javax.tools.*;
 import java.io.File;
+import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -129,7 +133,44 @@ public class Grade {
 
     @Test
     @Mark(5)
+    // TODO finish this test
     public void isGetTotalCostOk(){
+        try {
+            Class program_class = Class.forName("course.Program");
+            Class lecture_class = Class.forName("activity.Lecture");
+            Class lab_class = Class.forName("activity.Lab");
+            Class course_class = Class.forName("course.Course");
+
+            Constructor program_constructor = program_class.getConstructor(String.class,int.class,int.class);
+            Constructor lecture_constructor = lecture_class.getConstructor(int.class);
+            Constructor lab_constructor = lab_class.getConstructor(int.class,int.class);
+            Constructor course_constructor1 = course_class.getConstructor(String.class,int.class,int.class);
+            Constructor course_constructor2 = course_class.getConstructor(String.class,Activity.class);
+            Constructor course_constructor3 = course_class.getConstructor(String.class,Activity.class,Activity.class);
+            Program p = (Program) program_constructor.newInstance("Program 1", 200, 180);
+            Activity lect1 = (Activity) lecture_constructor.newInstance(16);
+            Activity lect2 = (Activity) lecture_constructor.newInstance(24);
+            Activity lab1 =(Activity) lab_constructor.newInstance(32,20);
+            Activity lab2 =(Activity) lab_constructor.newInstance(16,25);
+            Course c0= (Course) course_constructor3.newInstance("Java programming", lect2, lab1);
+            Course c1= (Course) course_constructor2.newInstance("Algorithms", lect1);
+            Course c2 = (Course)course_constructor2.newInstance("Open source software", lab1);
+            Course c3 = (Course)course_constructor3.newInstance("Web programming", lect2, lab2);
+
+            p.addCourse(c0);
+            p.addCourse(c1);
+            p.addCourse(c2);
+            p.addCourse(c3);
+
+            int total = p.getTotalCost();
+            System.out.println("getTotalCost is over, total is " + total );
+
+            //assertEquals("Computed total should be equal to ",total);
+        }catch(Exception e){
+            e.printStackTrace();
+            System.err.println("Exception ocuured while invoking Class.forName"+ e.getMessage() + " : " + e.getCause());
+            fail("Unable to handle the Program class through reflection");
+        }
         // setup minimal objects to check methods results
         // uses main program setup to launch the getTotalCost
 //        Activity lect1 = new Lecture(16);
@@ -186,6 +227,20 @@ public class Grade {
         //Assert.assertEquals(expectedResult,);
     }
 
+
+    @Test
+    @Mark(2)
+    // TODO : improve this test
+    public void isCourseConstructorsOk(){
+        try{
+            Class clazz = Class.forName("course.Course");
+            List<Constructor> constructors = Arrays.asList(clazz.getConstructors());
+            assertTrue(constructors.size()==2);
+        }catch(Exception e){
+            System.err.println("Unable to instrospect Course class:" + e.getMessage() + "\t" + e.getCause());
+            fail("Error during reflection");
+        }
+    }
     @Test
     @Mark(2)
     public void isExceptionDeclared(){

@@ -17,7 +17,7 @@ Differents sujets couverts:
 # Ce qui n'a pas ete fait
 Il manque encore:
 
-- lancement de la methode getTotalCost(), une utilisation massive de l'instrospection permet de valider cela
+- finalisation du test  de la methode getTotalCost()
 - examen des attributs (Qdox permet cela aisement)
 - adapter les scripts:
   - enlever  l'appel a Javac devenu inutile
